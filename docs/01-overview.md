@@ -100,5 +100,5 @@ Terms used with a specific meaning throughout the documentation and the code.
 
 Version 0.2.0 — notes, checklists and auto-update on top of 0.1. The flows in
 [02-requirements.md](02-requirements.md) marked *Built* are implemented and covered by
-`npm run smoke` (186 checks against a real database and real files). Everything else is in
+`npm run smoke` (188 checks against a real database and real files). Everything else is in
 [11-roadmap.md](11-roadmap.md).

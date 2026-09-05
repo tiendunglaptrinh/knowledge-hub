@@ -194,7 +194,8 @@ It never acts on that without being asked.
 | FR-10.9 | A build that cannot update itself says so rather than failing. | Built — `unsupported`, tested by the presence of `app-update.yml` |
 | FR-10.10 | A failed check leaves the running version untouched and reports a code, not a stack. | Built — `UPDATE_CHECK_FAILED` |
 | FR-10.11 | The installer is signed, so the update does not warn on every release. | Not done — see [13-distribution.md](13-distribution.md#code-signing-d-6) |
-| FR-10.12 | An older application refuses a vault written by a newer one. | Planned — [11-roadmap.md](11-roadmap.md) R-14, and it matters more now |
+| FR-10.12 | An older application refuses a vault written by a newer one. | Built — `VAULT_TOO_NEW`, checked before any migration runs |
+| FR-10.13 | A startup failure with no window says so, rather than exiting silently. | Built — native dialog in `fatal()` |
 
 ---
 

@@ -78,6 +78,8 @@ const MESSAGES: Record<string, string> = {
   [ErrorCode.VAULT_UNWRITABLE]:
     'Không ghi được vào thư mục lưu trữ. Kiểm tra KB_DATA_DIR trong tệp .env.',
   [ErrorCode.VAULT_PATH_ESCAPE]: 'Đường dẫn tệp không hợp lệ.',
+  [ErrorCode.VAULT_TOO_NEW]:
+    'Kho dữ liệu này thuộc về một phiên bản Knowledge Hub mới hơn. Hãy cài lại bản mới nhất rồi mở lại.',
 }
 
 export function messageFor(code: string): string {

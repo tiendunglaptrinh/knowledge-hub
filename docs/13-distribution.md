@@ -32,7 +32,7 @@ A checklist, because most of these are invisible until a stranger runs the appli
 | D-5 | The first launch must explain itself with an empty vault | **Done** — empty states say what to do next |
 | D-6 | The installer must not warn that the publisher is unknown | **Not done** — needs code signing, see below |
 | D-7 | Users must be able to get fixes without a manual re-download | **Done** — GitHub Releases feed, notify-and-choose; see below |
-| D-8 | A crash on someone else's machine must be diagnosable | **Partial** — logs go to stdout, which an installed user never sees |
+| D-8 | A crash on someone else's machine must be diagnosable | **Partial** — a startup failure now shows a dialog; everything after it still goes to stdout, which an installed user never sees |
 
 D-1 through D-5 are what make distribution *possible*. D-6 and D-8 are what would make it
 *pleasant*, and each is scoped below. D-7 is built.
@@ -245,16 +245,20 @@ Semantic versioning, tracked in `package.json` and `CHANGELOG.md`.
 | Major | A migration an older version could not read, or a breaking change to the vault layout |
 
 The schema version (`PRAGMA user_version`) moves independently and only forward. An older
-application opening a newer vault is a case that currently **is not handled** — it would fail
-somewhere in a query rather than saying so. Before distributing, `openDatabase` should refuse a
-`user_version` higher than `LATEST_SCHEMA_VERSION` with a clear message. Recorded in
-[11-roadmap.md](11-roadmap.md).
+application opening a newer vault **is handled**: `openDatabase` refuses a `user_version` above
+`LATEST_SCHEMA_VERSION` with `VAULT_TOO_NEW`, before any migration runs, and the user gets a
+dialog saying their data is intact and to install the current version.
+
+That guard shipped in 0.2.0 rather than later on purpose — it only ever runs in the *older*
+build, so adding it alongside a future migration would protect nobody who installed this one.
+Auto-update is what makes the scenario real: several versions in circulation, and a user who
+reinstalls an older download after their vault has moved on.
 
 ### Release checklist
 
 ```bash
 npm run typecheck                 # both projects
-npm run smoke                     # 186 checks, real database and files
+npm run smoke                     # 188 checks, real database and files
 npm run shots                     # if the UI changed; check the PNGs
 # bump version in package.json — the feed compares exactly this
 # write the CHANGELOG entry; it becomes the release notes

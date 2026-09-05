@@ -103,7 +103,7 @@ npm run build        # compile main process + static-export the renderer
 npm run package      # build an installer into release/  (AppImage/deb, NSIS, dmg)
 
 npm run typecheck    # both TypeScript projects
-npm run smoke        # 186 end-to-end checks against a real database and real files
+npm run smoke        # 188 end-to-end checks against a real database and real files
 npm run shots        # boot the app, seed it, write screenshots to shots/
 ```
 

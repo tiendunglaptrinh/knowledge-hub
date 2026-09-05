@@ -20,6 +20,7 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { openDatabase } from '../src/storage/database'
+import { LATEST_SCHEMA_VERSION } from '../src/storage/migrations'
 import { FsAssetStore } from '../src/storage/fs/asset-store'
 import { FsNoteStore } from '../src/storage/fs/note-store'
 import { SqliteAssetRepository } from '../src/storage/sqlite/asset.repository'
@@ -800,6 +801,31 @@ async function main(): Promise<void> {
   await expectCode('path traversal refused', ErrorCode.VAULT_PATH_ESCAPE, () =>
     store.resolve('../../../etc/passwd'),
   )
+
+  // --- a vault from the future --------------------------------------------
+  //
+  // The guard has to live in the *older* application to be worth anything, so
+  // it is tested the only way it can happen in the wild: a database whose
+  // user_version is ahead of what this build knows.
+
+  console.log('\nschema guard')
+
+  const futureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'kb-future-'))
+  const futurePath = path.join(futureDir, 'knowledge.db')
+
+  const fresh = openDatabase(futurePath)
+  check('a fresh vault opens at the current version', fresh.toVersion === LATEST_SCHEMA_VERSION)
+
+  // Pretend a newer build has been here. Done through the open handle rather
+  // than by reopening, because reopening is the thing under test.
+  fresh.db.pragma('user_version = 99')
+  fresh.db.close()
+
+  await expectCode('a vault from a newer version is refused', ErrorCode.VAULT_TOO_NEW, () =>
+    openDatabase(futurePath),
+  )
+
+  await fs.rm(futureDir, { recursive: true, force: true })
 
   // --- vault info ---------------------------------------------------------------
 

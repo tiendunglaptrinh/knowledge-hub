@@ -48,7 +48,7 @@ a few hundred checks. It has not yet.
 
 ## What the smoke test covers
 
-186 checks, grouped as the script runs them.
+188 checks, grouped as the script runs them.
 
 ### Migrations
 - A fresh database migrates from v0 to v3
@@ -181,6 +181,11 @@ undisturbed.
 ### Error paths
 - Missing item, category and asset each raise their own code
 - **Path traversal is refused** — `../../../etc/passwd` raises `VAULT_PATH_ESCAPE`
+
+### Schema guard
+- A fresh vault opens at the current version
+- **A vault whose `user_version` is ahead of this build is refused** (`VAULT_TOO_NEW`) — the one
+  invariant that can only be tested by faking the future, since no migration produces it
 
 ### Vault info
 - Counts (including checklists), the notes directory and the schema version reported correctly
@@ -331,7 +336,7 @@ read by a person deciding whether to trust a change.
 
 ```bash
 npm run typecheck   # both projects
-npm run smoke       # 186 checks
+npm run smoke       # 188 checks
 npm run shots       # only if the UI changed
 ```
 

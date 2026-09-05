@@ -78,6 +78,13 @@ export const ErrorCode = {
 
   // vault
   VAULT_UNWRITABLE: 'VAULT_UNWRITABLE',
+  /**
+   * The vault was written by a newer version of the application than this one.
+   * Refusing is the only safe move: this build has no idea what the columns it
+   * cannot see are for, and writing to them would corrupt data the newer
+   * version understands.
+   */
+  VAULT_TOO_NEW: 'VAULT_TOO_NEW',
   VAULT_PATH_ESCAPE: 'VAULT_PATH_ESCAPE',
 } as const
 

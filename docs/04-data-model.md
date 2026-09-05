@@ -334,8 +334,9 @@ to infer it from, so the format is the user's own answer rather than ours.
 | DI-25 | Sub-tasks are one level deep | `ChecklistService.addTask` raises `CHECKLIST_TASK_NESTING_TOO_DEEP` |
 | DI-26 | A big task's status agrees with its break-down | `statusFromChildren` after every child change; a tick on the parent cascades down |
 | DI-27 | A task is only ever reordered among siblings of equal rank | `ChecklistService.moveTask` raises `CHECKLIST_TASK_PRIORITY_MISMATCH`; the drop target refuses the gesture first |
+| DI-28 | An older build never writes to a vault a newer build has migrated | `openDatabase` refuses a `user_version` above `LATEST_SCHEMA_VERSION` with `VAULT_TOO_NEW` |
 
-DI-3 through DI-27 are covered by `npm run smoke`.
+DI-3 through DI-28 are covered by `npm run smoke`.
 
 ---
 
@@ -353,6 +354,17 @@ Same discipline as Flyway on a server project.
 
 The current version is tracked in `PRAGMA user_version`, a 32-bit integer in the SQLite file
 header. No table of its own, and it cannot drift out of sync with the schema it describes.
+
+**A vault from the future is refused, not opened.** Migrations only move forward, so a
+`user_version` above `LATEST_SCHEMA_VERSION` means a newer build has been here — one that added
+tables and columns this code knows nothing about. `openDatabase` throws `VAULT_TOO_NEW` before
+touching anything, and the application shows a native dialog saying so.
+
+Continuing would not fail cleanly, which is the point: queries would keep succeeding against the
+columns that still exist, and every write would quietly leave the newer version's data
+inconsistent. Note that this guard is only worth anything in the **older** application — a check
+added alongside a future migration protects nobody running today's build, which is why it ships
+before the first release anyone else installs.
 
 ### Shipped migrations
 

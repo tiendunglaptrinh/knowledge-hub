@@ -6,13 +6,14 @@
  * decided here — this file only owns the Electron lifecycle.
  */
 
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, dialog, shell } from 'electron'
 import path from 'node:path'
 
 import { loadConfig } from './config'
 import { createContainer, type Container } from './container'
 import { registerIpcHandlers } from './ipc/register'
 import { installAppProtocol, registerAppScheme, RENDERER_ORIGIN } from './protocol'
+import { AppError, ErrorCode } from '../shared/errors'
 import { logger } from './logger'
 
 // Must precede app.whenReady() — see protocol.ts.
@@ -137,7 +138,46 @@ app.on('before-quit', () => {
   container = null
 })
 
+/**
+ * Startup failed, and there is no window to say so in.
+ *
+ * A native dialog, not a log line: `logger` writes to stdout, which a user who
+ * double-clicked an icon will never see. Before this, a vault that could not be
+ * opened produced an application that simply did not appear.
+ *
+ * The text here is Vietnamese, which is the one place the main process carries
+ * user-facing wording — the rule in docs/05-ipc-contract.md#the-message-rule
+ * puts it in `renderer/src/lib/messages.ts`, and at this point the renderer
+ * does not exist. Keeping the two catalogues in step is a manual job, and the
+ * two strings below are the whole of it.
+ */
 function fatal(error: unknown): void {
   logger.error(`startup failed: ${error instanceof Error ? error.stack : String(error)}`)
+
+  const code = error instanceof AppError ? error.code : ErrorCode.UNKNOWN
+
+  const [title, message] =
+    code === ErrorCode.VAULT_TOO_NEW
+      ? [
+          'Kho dữ liệu thuộc về phiên bản mới hơn',
+          'Kho dữ liệu này đã được một phiên bản Knowledge Hub mới hơn mở và nâng cấp, nên ' +
+            'bản đang chạy không đọc được nữa.\n\n' +
+            'Dữ liệu của bạn vẫn nguyên vẹn — ứng dụng dừng lại chính là để giữ nguyên nó. ' +
+            'Hãy cài lại phiên bản mới nhất rồi mở lại.',
+        ]
+      : code === ErrorCode.VAULT_UNWRITABLE
+        ? [
+            'Không ghi được vào kho dữ liệu',
+            'Không tạo hoặc ghi được vào thư mục lưu trữ. Kiểm tra quyền truy cập thư mục, ' +
+              'hoặc đặt lại KB_DATA_DIR.',
+          ]
+        : [
+            'Không khởi động được',
+            'Đã xảy ra lỗi khi mở ứng dụng. Xem log ứng dụng để biết chi tiết.',
+          ]
+
+  // `showErrorBox` is synchronous and works before `app.whenReady()` has
+  // resolved, which the dialog-with-buttons API does not.
+  dialog.showErrorBox(title, message)
   app.exit(1)
 }

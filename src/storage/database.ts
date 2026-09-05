@@ -16,6 +16,7 @@ import Database from 'better-sqlite3'
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { AppError, ErrorCode } from '../shared/errors'
 import { LATEST_SCHEMA_VERSION, MIGRATIONS } from './migrations'
 
 export type Db = Database.Database
@@ -37,6 +38,27 @@ export function openDatabase(databasePath: string): OpenDatabaseResult {
   db.pragma('busy_timeout = 5000')
 
   const fromVersion = currentVersion(db)
+
+  // Refuse a vault from the future, before touching anything.
+  //
+  // Migrations only move forward, so a `user_version` ahead of ours means a
+  // newer build has been here — one that added tables and columns this code
+  // knows nothing about. Continuing would not fail cleanly: queries would
+  // succeed against the columns that still exist, and every write would
+  // silently leave the newer version's data inconsistent.
+  //
+  // This check has to exist in the *older* application to be worth anything,
+  // which is why it ships now rather than alongside the next migration: a
+  // guard added in a future version protects nobody running this one.
+  if (fromVersion > LATEST_SCHEMA_VERSION) {
+    db.close()
+    throw new AppError(
+      ErrorCode.VAULT_TOO_NEW,
+      `vault is at schema v${fromVersion}; this build understands up to v${LATEST_SCHEMA_VERSION}`,
+      { vaultVersion: fromVersion, supportedVersion: LATEST_SCHEMA_VERSION },
+    )
+  }
+
   migrate(db, fromVersion)
 
   return { db, fromVersion, toVersion: LATEST_SCHEMA_VERSION }

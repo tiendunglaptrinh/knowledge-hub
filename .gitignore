@@ -16,6 +16,10 @@ release/
 # it on first launch — so a tracked copy makes every clone start dirty.
 data/
 
+# A stray Next.js chunk that was left in the project root by an old build.
+# Nothing references it; the real chunks live in renderer/out/_next/.
+page-*.js
+
 # OS / editor noise
 .DS_Store
 Thumbs.db

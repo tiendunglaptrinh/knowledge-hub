@@ -31,6 +31,27 @@ confirmed a tag had been *accepted* until the item was saved.
 
 ### Added
 
+**An older build now refuses a vault a newer build has migrated.**
+
+`openDatabase` throws `VAULT_TOO_NEW` when `PRAGMA user_version` is above what this build
+understands — before any migration runs, before anything is touched. Continuing would not fail
+cleanly, which is the danger: queries keep succeeding against the columns that still exist, and
+every write quietly leaves the newer version's data inconsistent.
+
+Shipped in the same release as auto-update, deliberately. **The check only ever runs in the
+older application**, so one added alongside a future migration would protect nobody running this
+build — and auto-update is exactly what puts several versions into circulation.
+
+- **A startup failure now shows a native dialog instead of exiting silently.** `logger` writes
+  to stdout, which someone who double-clicked an icon never sees; before this, a vault that
+  could not be opened produced an application that simply did not appear. Three cases are worded
+  for the user: a vault from the future, an unwritable vault, and everything else.
+- That dialog is the one place the main process carries user-facing Vietnamese. The rule in
+  [docs/05-ipc-contract.md](docs/05-ipc-contract.md#the-message-rule) puts such text in the
+  renderer's catalogue — and at this point in startup the renderer does not exist.
+- `npm run smoke` grows to **188 checks**, including the one invariant that can only be tested
+  by faking the future: a vault stamped `user_version = 99`.
+
 **Auto-update — the application now tells you when a newer version exists.**
 
 The feed is GitHub Releases on a public repository: no token in the application, `latest.yml`

@@ -193,15 +193,16 @@ machine" is unactionable.
 button on the Settings screen to open it.
 **Cost:** small. **Value:** high the moment anyone but you runs it.
 
-### R-14 · Refuse a vault from a newer version
+### R-14 · Refuse a vault from a newer version — **done in 0.2.0**
 
-An older application opening a vault whose `user_version` is ahead of `LATEST_SCHEMA_VERSION`
-currently fails somewhere inside a query rather than saying so. Now that auto-update ships
-(R-16), several versions *are* in circulation, which makes this a data-loss-shaped bug rather
-than a future one.
+Shipped alongside auto-update, and deliberately in the same release: the check lives in the
+*older* application, so one added later would protect nobody running this build.
 
-**Touches:** `openDatabase` — one comparison and one clear error.
-**Cost:** tiny. **Value:** high. Do this before the second person installs it.
+`openDatabase` refuses a `user_version` above `LATEST_SCHEMA_VERSION` with `VAULT_TOO_NEW`,
+before any migration runs, and `fatal()` now shows a native dialog instead of exiting silently
+into a log the user cannot see. That dialog is also the first half of **R-13**.
+
+---
 
 ### R-15 · Code signing
 
@@ -223,7 +224,8 @@ Once several versions are in circulation, an older application opening a vault w
 newer one is a real scenario rather than a hypothetical, and today it fails somewhere inside a
 query instead of saying so.
 
-**R-13 also moved up.** A user who takes an update and hits a problem has no log to send.
+**R-13 also moved up.** A user who takes an update and hits a problem has no log to send — a
+startup failure at least shows a dialog now (R-14), but nothing after that does.
 
 ---
 

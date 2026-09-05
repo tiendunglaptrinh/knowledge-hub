@@ -52,7 +52,7 @@ already present in the real environment win over the file, so
 | `npm run package` | Full build, then electron-builder → `release/`. Add `--publish always` with `GH_TOKEN` set to upload to the release feed |
 | `npm run package:dir` | Unpacked build, for inspecting the bundle without making an installer |
 | `npm run typecheck` | Both TypeScript projects |
-| `npm run smoke` | 186 end-to-end checks against a real database and real files |
+| `npm run smoke` | 188 end-to-end checks against a real database and real files |
 | `npm run shots` | Boots the app, seeds it, writes `shots/*.png` |
 
 ### `dev` vs `start`
