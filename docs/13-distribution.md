@@ -281,6 +281,23 @@ The release starts as a **draft** on GitHub. Nothing reaches users until it is p
 which is the intended safety catch: build, install the draft artefact on a second machine, then
 publish.
 
+**Do not upload the installer by hand.** `latest.yml` refers to the asset as
+`Knowledge-Hub-Setup-0.2.0.exe`, with hyphens, while the file on disk is
+`Knowledge Hub Setup 0.2.0.exe`, with spaces — electron-builder renames it during upload because
+GitHub rewrites spaces in asset names. Drag the file into a release yourself and GitHub stores
+it as `Knowledge.Hub.Setup.0.2.0.exe`, with dots; `latest.yml` then points at a name that does
+not exist and every client's download 404s while the check itself still reports an update. Use
+`--publish always` and let it do both files.
+
+### Testing a build while another copy is installed
+
+Two installs of this application cannot run at once — `requestSingleInstanceLock()` is per
+`appId`, and both copies share one. The second exits **silently**: it logs
+`starting Knowledge Hub (packaged)` and nothing else, because `app.quit()` tears the process
+down partway through `createContainer`. That looks exactly like a broken build.
+
+Close the other copy first. It is worth knowing before spending an afternoon on it.
+
 Then verify the built artefact on a machine that has never run the application — not the build
 machine. The failures that only distribution surfaces are all first-run failures: a missing
 native module, a vault path that is not writable, a default that assumed your own setup.
