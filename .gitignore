@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+renderer/.next/
+renderer/out/
+release/
+
+# local configuration — never committed, see .env.example
+.env
+
+# The development vault. docs/06-storage-layout.md leaves this choice to whoever
+# sets up the repository, and the choice made here is to exclude it: the file is
+# a scratch vault, it is rewritten by every `npm run dev`, and a migration bumps
+# it on first launch — so a tracked copy makes every clone start dirty.
+data/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.tsbuildinfo

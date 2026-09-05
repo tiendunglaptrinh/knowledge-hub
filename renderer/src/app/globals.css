@@ -1,0 +1,319 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens.
+ *
+ * Every colour a component can reach is a token here, and every token is a CSS
+ * custom property — that is what makes themes possible without touching a
+ * single component. Tailwind v4 compiles `bg-surface-1` to
+ * `background-color: var(--color-surface-1)`, so overriding the variable on a
+ * `[data-theme]` selector re-skins the whole application.
+ *
+ * The values below are the dark theme, which is also the default: `:root` is
+ * what applies when no theme has been chosen yet. Documented in
+ * docs/08-ui-guide.md.
+ */
+@theme {
+  --color-surface-0: #0b1020; /* app background */
+  --color-surface-1: #121a2e; /* panels, sidebar */
+  --color-surface-2: #1b2540; /* cards */
+  --color-surface-3: #26314f; /* hover, borders */
+
+  --color-ink-1: #e8edf7; /* primary text */
+  --color-ink-2: #a3b0c9; /* secondary text */
+  --color-ink-3: #6b7a99; /* muted, metadata */
+
+  --color-accent: #38bdf8;
+  --color-accent-soft: #0e3550;
+  --color-danger: #f87171;
+  --color-success: #34d399;
+
+  /*
+   * Text drawn on top of a filled accent or danger surface. It cannot be
+   * `surface-0`, which is what it used to be: that only works while the
+   * background is dark, and on the light theme it would put near-white text on
+   * a mid-blue button.
+   */
+  --color-on-accent: #0b1020;
+
+  --radius-panel: 14px;
+}
+
+/*
+ * Typography, and the two scale knobs.
+ *
+ * The font stacks live here rather than in TypeScript so there is exactly one
+ * copy of them: the settings screen and the pre-paint script in layout.tsx
+ * both refer to a stack by name (`--font-stack-segoe`) and never by value.
+ * Adding a font to the picker means adding a stack here and a label there.
+ *
+ * Only fonts already present on the machine are offered. The renderer's CSP
+ * allows no remote origin, and a webfont would have to be shipped inside the
+ * bundle to be usable at all — so every stack below ends in a generic family
+ * and every option degrades to something readable.
+ */
+:root {
+  --font-stack-system:
+    'Inter', 'Segoe UI', system-ui, -apple-system, 'Noto Sans', 'Helvetica Neue', sans-serif;
+  --font-stack-segoe: 'Segoe UI', system-ui, 'Noto Sans', 'Helvetica Neue', sans-serif;
+  --font-stack-arial: Arial, Helvetica, 'Liberation Sans', sans-serif;
+  --font-stack-tahoma: Tahoma, Verdana, 'DejaVu Sans', sans-serif;
+  --font-stack-georgia: Georgia, 'Times New Roman', 'Liberation Serif', serif;
+  --font-stack-times: 'Times New Roman', Times, 'Liberation Serif', serif;
+
+  --font-stack-mono: 'JetBrains Mono', 'Cascadia Code', ui-monospace, Consolas, monospace;
+  --font-stack-consolas: Consolas, 'Cascadia Mono', ui-monospace, 'Courier New', monospace;
+  --font-stack-courier: 'Courier New', Courier, ui-monospace, monospace;
+
+  /* What the three roles resolve to. Overwritten on <html> by the settings. */
+  --ui-font: var(--font-stack-system); /* application chrome */
+  --doc-font: var(--font-stack-system); /* rendered documents and notes */
+  --mono-font: var(--font-stack-mono); /* source panes, code, verbatim text */
+
+  /*
+   * Content zoom: multiplies the type size of documents and editing panes only,
+   * leaving the chrome alone. Application-wide zoom is a different mechanism —
+   * Electron's own zoom factor — because it must also scale the PDF viewer and
+   * the pixel sizes CSS here cannot reach. See lib/prefs.tsx.
+   */
+  --content-scale: 1;
+
+  /* Headings inside rendered documents; brighter than body text. */
+  --doc-heading: #ffffff;
+
+  /* Tailwind's own `font-mono` utility follows the setting. */
+  --font-mono: var(--mono-font);
+}
+
+/* ------------------------------------------------------------------ themes */
+
+/*
+ * Each block overrides only what differs. `html[data-theme=…]` outranks
+ * `:root` on specificity, so the dark values above stay the fallback for any
+ * token a theme forgets.
+ */
+
+html[data-theme='light'] {
+  --color-surface-0: #ffffff;
+  --color-surface-1: #f6f8fc;
+  --color-surface-2: #eef2f9;
+  --color-surface-3: #d8e0ee;
+
+  --color-ink-1: #101828;
+  --color-ink-2: #43506b;
+  --color-ink-3: #6b7a99;
+
+  --color-accent: #0369a1;
+  --color-accent-soft: #dbeafe;
+  --color-danger: #dc2626;
+  --color-success: #047857;
+
+  --color-on-accent: #ffffff;
+  --doc-heading: #0b1020;
+}
+
+/* A paper-coloured reading surface, for long documents in a bright room. */
+html[data-theme='sepia'] {
+  --color-surface-0: #f6efe1;
+  --color-surface-1: #efe6d4;
+  --color-surface-2: #e7dcc6;
+  --color-surface-3: #d3c4a6;
+
+  --color-ink-1: #3b3226;
+  --color-ink-2: #5f5342;
+  --color-ink-3: #8a7b64;
+
+  --color-accent: #9a5b1c;
+  --color-accent-soft: #e5d4b4;
+  --color-danger: #a8321f;
+  --color-success: #4a6b2f;
+
+  --color-on-accent: #fbf6ec;
+  --doc-heading: #2a2318;
+}
+
+html[data-theme='contrast'] {
+  --color-surface-0: #000000;
+  --color-surface-1: #0a0a0c;
+  --color-surface-2: #17171a;
+  --color-surface-3: #45454d;
+
+  --color-ink-1: #ffffff;
+  --color-ink-2: #e4e4e8;
+  --color-ink-3: #b4b4bd;
+
+  --color-accent: #4cc9ff;
+  --color-accent-soft: #003049;
+  --color-danger: #ff8f8f;
+  --color-success: #4ade80;
+
+  --color-on-accent: #000000;
+  --doc-heading: #ffffff;
+}
+
+/* ------------------------------------------------------------------ base */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-surface-0);
+  color: var(--color-ink-1);
+  font-family: var(--ui-font);
+  /* Electron: the whole window is the app, so the document itself never scrolls. */
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbars: visible enough to grab, quiet enough to ignore. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-3) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-surface-3);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* Nothing in this app is a web page; text selection on chrome is noise. */
+button,
+label,
+th {
+  user-select: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/*
+ * The tag box already shows focus by turning its own border accent
+ * (`focus-within:border-accent`), so the field inside it must not draw a second
+ * ring within the first.
+ *
+ * It has to be here rather than a `focus-visible:outline-none` utility on the
+ * element: Tailwind's utilities live in `@layer utilities`, and an unlayered
+ * rule — like the one directly above — outranks any layered one no matter how
+ * specific. A utility would silently lose.
+ */
+.tag-field:focus-visible {
+  outline: none;
+}
+
+/*
+ * Rendered document body.
+ *
+ * Markdown and Word both arrive as plain semantic HTML with no classes, so it
+ * is styled here by element rather than with utilities. Scoped under
+ * `.doc-prose` so it cannot leak into the application chrome.
+ *
+ * The base size is the one place content zoom is applied for rendered
+ * documents; every rule below sizes in `em`, so they follow it.
+ */
+.doc-prose {
+  color: var(--color-ink-1);
+  font-family: var(--doc-font);
+  line-height: 1.75;
+  font-size: calc(15px * var(--content-scale));
+  max-width: 78ch;
+}
+.doc-prose h1,
+.doc-prose h2,
+.doc-prose h3,
+.doc-prose h4 {
+  color: var(--doc-heading);
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1.8em 0 0.6em;
+}
+.doc-prose h1 {
+  font-size: 1.7em;
+}
+.doc-prose h2 {
+  font-size: 1.35em;
+}
+.doc-prose h3 {
+  font-size: 1.15em;
+}
+.doc-prose p,
+.doc-prose ul,
+.doc-prose ol,
+.doc-prose blockquote,
+.doc-prose table {
+  margin: 0.9em 0;
+}
+.doc-prose ul,
+.doc-prose ol {
+  padding-left: 1.4em;
+}
+.doc-prose ul {
+  list-style: disc;
+}
+.doc-prose ol {
+  list-style: decimal;
+}
+.doc-prose li {
+  margin: 0.3em 0;
+}
+.doc-prose a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.doc-prose code {
+  background: var(--color-surface-2);
+  padding: 0.15em 0.4em;
+  border-radius: 5px;
+  font-size: 0.88em;
+  font-family: var(--mono-font);
+}
+.doc-prose pre {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-surface-3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 1.1em 0;
+}
+.doc-prose pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+.doc-prose blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1em;
+  color: var(--color-ink-2);
+}
+.doc-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.92em;
+}
+.doc-prose th,
+.doc-prose td {
+  border: 1px solid var(--color-surface-3);
+  padding: 8px 12px;
+  text-align: left;
+}
+.doc-prose th {
+  background: var(--color-surface-2);
+}
+.doc-prose img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+.doc-prose hr {
+  border: none;
+  border-top: 1px solid var(--color-surface-3);
+  margin: 2em 0;
+}

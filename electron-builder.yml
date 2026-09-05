@@ -1,0 +1,68 @@
+appId: com.dungta.knowledgehub
+productName: Knowledge Hub
+copyright: Copyright © 2026 Dung Ta
+
+directories:
+  output: release
+  buildResources: build
+
+# Where a running copy looks for a newer version, and where `--publish` uploads
+# one. A public repository needs no token in the application: the feed is
+# `https://github.com/<owner>/<repo>/releases/latest/download/latest.yml`, which
+# anonymous HTTPS can read. GH_TOKEN is only needed on the *build* machine, to
+# upload.
+#
+# Auto-update works from the `nsis` target only. A `portable` build and a
+# `--dir` build have nothing to write over, so `UpdateService` reports
+# `unsupported` rather than failing on them.
+publish:
+  provider: github
+  owner: tiendunglaptrinh
+  repo: knowledge-hub
+  releaseType: release
+
+# Only these paths enter the application bundle. Source .ts files, docs and the
+# vault are deliberately excluded — the vault lives outside the app so it
+# survives reinstalls and upgrades. See docs/06-storage-layout.md.
+files:
+  - dist/main/**
+  - renderer/out/**
+  - package.json
+  - '!**/*.map'
+
+# better-sqlite3 ships a native .node binary that cannot be read from inside an
+# asar archive. Unpacking it is required, not an optimisation.
+asar: true
+asarUnpack:
+  - node_modules/better-sqlite3/**
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Office
+  icon: build/icon.png
+  desktop:
+    entry:
+      Name: Knowledge Hub
+      Comment: Personal knowledge vault
+      Categories: Office;Education;
+
+win:
+  target:
+    - nsis
+    - portable
+  icon: build/icon.ico
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Knowledge Hub
+
+mac:
+  target: dmg
+  category: public.app-category.productivity
+  icon: build/icon.icns
